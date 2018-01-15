@@ -1,0 +1,32 @@
+@keyframes rotate {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+.rotate-button1 {
+  background-color: inherit;
+  border: 2px solid black;
+  animation: rotate 2s infinite;
+}
+
+.rotate-button2 {
+  background-color: inherit;
+  border: 2px solid black;
+}
+
+.rotate-button2:hover {
+  animation: rotate 2s infinite;
+}
+
+.rotate-button3 {
+  background-color: inherit;
+  border: 2px solid black;
+  will-change: transform;
+}
+
+.rotate-button3:hover {
+  animation: rotate 2s infinite;
+}

@@ -1,0 +1,390 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<title>Animations performance</title>
+
+		<link rel="stylesheet" href="css/reveal.css">
+		<link rel="stylesheet" href="css/theme/black.css">
+
+		<link rel="stylesheet" href="css/examples.css">
+
+		<!-- Theme used for syntax highlighting of code -->
+
+		<link rel="stylesheet" href="css/style.css">
+		<link rel="stylesheet" href="bootstrap-3.3.7/css/bootstrap.min.css">
+
+		<!-- Printing and PDF exports -->
+		<script>
+			var link = document.createElement( 'link' );
+			link.rel = 'stylesheet';
+			link.type = 'text/css';
+			link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+			document.getElementsByTagName( 'head' )[0].appendChild( link );
+		</script>
+	</head>
+	<body>
+		<div class="reveal">
+			<div class="slides">
+
+				<section data-background="crimson" class="secondary-red">
+					<h3>Make your <em>animations</em> perform well</h3>
+					<small><b>Pablo Castro - @castrinho18</b></small>
+					<br/>
+					<small><b>Based on an
+						<a
+							target="_blank"
+							href="https://www.slideshare.net/AnnaMigas1/make-your-animations-perform-well-js-conf-budapest-2017">
+							Anna Migas
+						</a> talk
+					</b></small>
+				</section>
+
+				<section data-background="white" class="primary-red">
+					<h3><span>Index</span></h3>
+					<ol>
+						<li>Intro web rendering</li>
+						<li>Layers</li>
+						<li>FLIP</li>
+						<li>Animation frame</li>
+						<li>Tools</li>
+					</ol>
+				</section>
+
+				<section data-background="white" class="primary-red">
+					<img width="500px" src="./img/gif/homer_corn_burn.gif" />
+				</section>
+
+				<section data-background="white" class="primary-red">
+					<h3>Web animations <em>CSS vs JS</em></h3>
+					<div class="fragment">
+						<h4><em>CSS</em> -> performance</h4>
+						<h4><em>JS</em> -> control</h4>
+					</div>
+					<aside class="notes">
+						CSS: GPU acceleration, native, vendor prefixes, sync animations is hard
+					</aside>
+				</section>
+
+				<section data-background="crimson" class="secondary-red">
+					<h3>1. How a browser <em>paints</em> a website?</h3>
+					<ol>
+						<li>GET request</li>
+						<li>HTML parsing and DOM creation</li>
+						<li>Styles are applied</li>
+						<li>Layout calculation</li>
+						<li>Everything is painted</li>
+						<li>Layers composition</li>
+					</ol>
+				</section>
+
+				<section data-background="crimson" class="secondary-red">
+					<h4>Any change on a page</h4>
+					<br/>
+					<p>
+						<ul class="boxes">
+							<li>Javascript</li>
+							<li>Recalculate Styles</li>
+							<li>Layout</li>
+							<li>Paint</li>
+							<li>Layers composition</li>
+						</ul>
+					</p>
+				</section>
+
+				<section data-background="crimson" class="secondary-red">
+					<h4>(width, margin, left...)</h4>
+					<br/>
+					<p>
+						<ul class="boxes">
+							<li>Javascript</li>
+							<li>Recalculate Styles</li>
+							<li>Layout</li>
+							<li>Paint</li>
+							<li>Layers composition</li>
+						</ul>
+					</p>
+				</section>
+
+				<section data-background="crimson" class="secondary-red">
+					<h4>(background-color, shadows...)</h4>
+					<br/>
+					<p>
+						<ul class="boxes">
+							<li>Javascript</li>
+							<li>Recalculate Styles</li>
+							<li class="active">Layout</li>
+							<li>Paint</li>
+							<li>Layers composition</li>
+						</ul>
+					</p>
+				</section>
+
+				<section data-background="crimson" class="secondary-red">
+					<h4>(opacity, transform)</h4>
+					<br/>
+					<p>
+						<ul class="boxes">
+							<li>Javascript</li>
+							<li>Recalculate Styles</li>
+							<li class="active">Layout</li>
+							<li class="active">Paint</li>
+							<li>Layers composition</li>
+						</ul>
+					</p>
+					<p><a href="https://csstriggers.com/" target="_blank">csstriggers.com</a></p>
+				</section>
+
+				<section data-background="white" class="primary-red">
+					<h3>2. <em>Optimizations</em> with layers</h3>
+				</section>
+
+				<section data-background="white" class="primary-red">
+<pre>
+	<code class="css">
+  @keyframes rotate {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+  .rotate-button {
+    border: 2px solid black;
+    animation: rotate 2s infinite;
+  }
+	</code>
+</pre>
+				</section>
+
+				<section data-background="white" class="primary-red">
+					<button class="rotate-button1">Button</button>
+				</section>
+
+				<section data-background="white" class="primary-red">
+<pre>
+	<code class="css">
+  @keyframes rotate {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+  .rotate-button {
+    border: 2px solid black;
+  }
+  .rotate-button:hover {
+    animation: rotate 2s infinite;
+  }
+	</code>
+</pre>
+				</section>
+
+				<section data-background="white" class="primary-red">
+					<button class="rotate-button2">Button</button>
+				</section>
+
+				<section data-background="white" class="primary-red">
+					<p>will-change: transform</p>
+					<br/>
+					<button class="rotate-button3">Button</button>
+				</section>
+
+				<section data-background="crimson" class="secondary-red">
+					<h4>will-change</h4>
+					<ul>
+						<li>Every layer consumes memory</li>
+						<li>You can use event listeners to remove it when animation finish</li>
+						<li>Use it if animation happens a lot</li>
+						<li>IE/Edge doesn't support it</li>
+					</ul>
+				</section>
+
+				<section data-background="white" class="primary-red">
+					<h3>3. <em>FLIP:</em> First, Last, Invert, Play</h3>
+				</section>
+
+				<section data-background="crimson" class="secondary-red">
+					<h4>100ms gap to start interactions</h4>
+					<p class="fragment">Use this time to calculate animations</p>
+				</section>
+
+				<section data-background="white" class="primary-red">
+					<h4>Typical solution</h4>
+					<div style="display: flex; align-items: center;">
+<pre style="width: 500px; display: inline-block;">
+	<code class="css">
+  .element {
+    position: absolute;
+    left: -200px;
+  }
+  .element.active {
+    transform: translateX(200px);
+  }
+	</code>
+</pre>
+<img style="width: 450px;" src="img/flip.png"/>
+				</div>
+				</section>
+
+				<section data-background="white" class="primary-red">
+					<h4>Good solution</h4>
+					<div style="display: flex; align-items: center;">
+<pre style="width: 500px; display: inline-block;">
+	<code class="css">
+  .element {
+    position: absolute;
+    transform: translateX(-200px);
+    transition: transform 1s;
+  }
+  .element.active {
+    transform: none;
+  }
+	</code>
+</pre>
+<img style="width: 450px;" src="img/flip.png"/>
+				</div>
+				</section>
+
+				<section data-background="white" class="primary-red">
+					<h3>4. Animation <em>frames</em></h3>
+				</section>
+
+				<section data-background="crimson" class="secondary-red">
+					<h4>1 frame == 16ms*</h4>
+					<p>
+						<ul class="boxes">
+							<li>Javascript</li>
+							<li>Recalculate Styles</li>
+							<li class="fragment inject">Javascript <i class="arrow"></i></li>
+							<li class="active">Layout</li>
+							<li class="active">Paint</li>
+							<li>Layers composition</li>
+						</ul>
+					</p>
+					<small>* (1s == 1000ms)/60fps = 16ms</small>
+					<aside class="notes">
+						if we do hudge changes, we will lost frames and the animation will be bad
+					</aside>
+				</section>
+
+				<section data-background="crimson" class="secondary-red">
+					<h4>Try to do that in 16ms</h4>
+					<h4 class="fragment"><em>requestAnimationFrame()</em></h4>
+				</section>
+
+				<section data-background="white" class="primary-red">
+<pre>
+	<code class="javascript">
+var start = null;
+var element = document.getElementById('SomeElementYouWantToAnimate');
+element.style.position = 'absolute';
+
+function step(timestamp) {
+  if (!start) start = timestamp;
+  var progress = timestamp - start;
+  element.style.left = Math.min(progress / 10, 200) + 'px';
+  if (progress < 2000) {
+    window.requestAnimationFrame(step);
+  }
+}
+window.requestAnimationFrame(step);
+
+	</code>
+</pre>
+				</section>
+
+				<section data-background="crimson" class="secondary-red">
+					<h4>requestAnimationFrame()</h4>
+					<ul>
+						<li>Need vendor prefixes</li>
+						<li>Polyfill for older browsers</li>
+						<li>Not needed in WAAPI, GSAP, jQuery 3+</li>
+						<li>Animations in inactive tabs will stop</li>
+						<li>Better than setInterval</li>
+					</ul>
+				</section>
+
+				<section data-background="white" class="primary-red">
+					<h3>5. Tools <a href="https://developer.mozilla.org/en-US/docs/Tools/Page_Inspector/How_to/Work_with_animations" target="_blank">firefox</a>/<a href="https://developers.google.com/web/tools/chrome-devtools/inspect-styles/animations" target="_blank">chrome</a></h3>
+				</section>
+
+				<section data-background="crimson" class="secondary-red">
+					<h3>Summary</h3>
+					<ul>
+						<li>Less animations</li>
+						<li>Animate only transform/opacity</li>
+						<li>Use will-change and requestAnimationFrame carefully</li>
+						<li>Don't overuse layers</li>
+						<li>Animate elements on top layers</li>
+					</ul>
+				</section>
+
+				<section data-background="#a0cff2">
+					<img src="./img/gif/homer_web.gif" width="80%" />
+				</section>
+
+				<section id="thanks-slide" data-background="crimson" class="secondary-red">
+					<h1>thanks!</h1>
+					<div class="author">
+						<p>
+							@castrinho18<span> | Pablo Castro</span>
+							<img class="img-circle" src="img/pablo_castro.jpeg">
+						</p>
+						<p><small>pablo.castro@mobgen.com</small></p>
+					</div>
+				</section>
+			</div>
+		</div>
+
+		<footer class="authors">
+			<p>Pablo Castro Valiño <a class="tw_cuenta" href="http://twitter.com/castrinho18" target="_blank" style="color: #996">(@castrinho18)</a> </p>
+    </footer>
+
+		<script src="lib/js/head.min.js"></script>
+		<script src="js/reveal.js"></script>
+		<script src="bootstrap-3.3.7/js/bootstrap.min.js"></script>
+
+		<script>
+			// More info https://github.com/hakimel/reveal.js#configuration
+			Reveal.initialize({
+				history: true,
+				slideNumber: true,
+				controls: false,
+				width: "70%",
+				height: "80%",
+				// Factor of the display size that should remain empty around the content
+				margin: 0.1,
+				// Bounds for smallest/largest possible scale to apply to content
+				minScale: 0.2,
+				maxScale: 1.5,
+
+				// More info https://github.com/hakimel/reveal.js#dependencies
+				dependencies: [
+					{ src: 'plugin/markdown/marked.js' },
+					{ src: 'plugin/markdown/markdown.js' },
+					{ src: 'plugin/notes/notes.js', async: true },
+					{ src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
+				]
+			});
+		</script>
+
+		<script>
+		/*
+			window.addEventListener("mousedown", handleClick, false);
+			window.addEventListener("contextmenu", function(e) { e.preventDefault(); }, false);
+
+			function handleClick(e) {
+			   e.preventDefault();
+			   if(e.button === 0) Reveal.next();
+			   if(e.button === 2) Reveal.prev();
+			}
+		*/
+		</script>
+	</body>
+</html>
